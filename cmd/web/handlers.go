@@ -13,6 +13,11 @@ import (
 	"web.taswiya-todo.cc/models"
 )
 
+type data struct {
+	Todo  *models.ToDo
+	ToDos []*models.ToDo
+}
+
 func (app *application) Home(response http.ResponseWriter, request *http.Request) {
 	ts, err := template.ParseFiles("./ui/home.html")
 	if err != nil {
@@ -22,7 +27,19 @@ func (app *application) Home(response http.ResponseWriter, request *http.Request
 		return
 	}
 
-	if err := ts.Execute(response, nil); err != nil {
+	todos, err := app.models.FetchAll()
+	if err != nil {
+		app.logger.Printf("failed to fetch the todos from the database: %s", err)
+		http.Error(response, "Internal Server Error", http.StatusInternalServerError)
+
+		return
+	}
+
+	dt := &data{
+		ToDos: todos,
+	}
+
+	if err := ts.Execute(response, dt); err != nil {
 		app.logger.Printf("failed to execute the home template: %s", err)
 		http.Error(response, "Internal Server Error", http.StatusInternalServerError)
 
@@ -131,5 +148,19 @@ func (app *application) FetchTask(response http.ResponseWriter, request *http.Re
 }
 
 func (app *application) DeleteTask(response http.ResponseWriter, request *http.Request) {
-	fmt.Fprintf(response, "Task has been deleted...\n")
+	params := httprouter.ParamsFromContext(request.Context())
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || id < 1 {
+		http.Error(response, "Task Not Found", http.StatusNotFound)
+		return
+	}
+
+	if err := app.models.Delete(id); err != nil {
+		app.logger.Printf("failed to delete the task from the database: %s", err)
+		http.Error(response, "Internal Server Error", http.StatusInternalServerError)
+
+		return
+	}
+
+	fmt.Fprintf(response, "Success")
 }

@@ -6,7 +6,7 @@
     </head>
     <body>
         <header>
-            <h1>ToDo</h1>
+            <a href="/"><h1>ToDo</h1></a>
             <nav>
                 <a href="/create">create</a>
                 <a href="/about">about</a>
@@ -15,7 +15,25 @@
         </header>
         <main>
             <h2>ToDos</h2>
-            <p>Currently, there is nothing to do. Relax :)</p>
+            {{if .ToDos}}
+                <table style="border: 1px blue solid;">
+                    {{range .ToDos}}
+                        <tr>
+                            <td>{{.Title}}</td>
+                            <td>{{.Description}}</td>
+                            <td>{{.Priority}}</td>
+                            <td>{{.Deadline}}</td>
+                            <td>
+                                <form action="/delete/{{.ID}}" method="post">
+                                    <button type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {{end}}
+                </table>
+            {{else}}
+                <p>Currently, there is nothing to do. Relax :)</p>
+            {{end}}
         </main>
         <footer>
             <a href="https://go.dev">Powered by Go</a>

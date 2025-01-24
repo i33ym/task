@@ -22,6 +22,42 @@ type ToDo struct {
 	Version     int
 }
 
+func (models *Models) FetchAll() ([]*ToDo, error) {
+	stmt := `select * from todo;`
+	rows, err := models.db.Query(stmt)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrTaskNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	todos := []*ToDo{}
+
+	for rows.Next() {
+		todo := &ToDo{}
+		if err := rows.Scan(
+			&todo.ID,
+			&todo.CreatedAt,
+			&todo.Title,
+			&todo.Description,
+			&todo.Priority,
+			&todo.Deadline,
+			&todo.Done,
+			&todo.UpdatedAt,
+			&todo.Version,
+		); err != nil {
+			return nil, err
+		}
+
+		todos = append(todos, todo)
+	}
+
+	return todos, nil
+}
+
 func (models *Models) Create(todo *ToDo) error {
 	stmt := `insert into todo (title, description, priority, deadline, done, updated_at)
 	values (?, ?, ?, ?, ?, ?);`
@@ -68,5 +104,11 @@ func (models *Models) Fetch(id int) (*ToDo, error) {
 }
 
 func (models *Models) Delete(id int) error {
+	stmt := `delete from todo where id = ?;`
+	_, err := models.db.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -13,6 +13,7 @@ func (app *application) routes() http.Handler {
 	mux.HandlerFunc(http.MethodGet, "/create", app.CreateTaskForm)
 	mux.HandlerFunc(http.MethodPost, "/create", app.CreateTask)
 	mux.HandlerFunc(http.MethodPatch, "/update", app.UpdateTask)
-	mux.HandlerFunc(http.MethodGet, "/update", app.UpdateTaskForm)
+	mux.HandlerFunc(http.MethodGet, "/update/:id", app.UpdateTaskForm)
+	mux.HandlerFunc(http.MethodPost, "/delete/:id", app.DeleteTask)
 	return mux
 }
